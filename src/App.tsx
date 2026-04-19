@@ -162,7 +162,7 @@ export default function App() {
         {/* Background Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-  src="https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/images/car3.jpg" 
+  src="https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car3.jpg" 
   alt="Car" 
   className="w-full h-full object-cover scale-105"
 />
@@ -219,12 +219,11 @@ export default function App() {
                 viewport={{ once: true }}
                 className="relative z-10"
               >
-                <img 
-                  src="https://images.unsplash.com/photo-1542362567-b05423605c06?auto=format&fit=crop&q=80&w=800" 
-                  alt="Car Interior" 
-                  className="rounded-3xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
-                  referrerPolicy="no-referrer"
-                />
+               <img 
+  src="https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car2.jpg" 
+  alt="Car Interior" 
+  className="rounded-3xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
+/>
               </motion.div>
               <div className="absolute -top-10 -left-10 w-64 h-64 bg-amber-500/10 blur-[100px] -z-0"></div>
               <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-zinc-950 blur-[50px] -z-0"></div>
@@ -350,10 +349,13 @@ export default function App() {
           <SectionHeading subtitle="The Fleet" title="Swift Dzire Luxury" light />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800",
-              "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=800",
-              "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800"
-            ].map((url, idx) => (
+ 
+ "https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car4.jpg",
+ "https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car5.jpg",
+ "https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car6.jpg",
+ "https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car7.jpg",
+ "https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/car8.jpg"
+].map((url, idx) => (
               <motion.div 
                 key={idx}
                 whileHover={{ scale: 1.05 }}
