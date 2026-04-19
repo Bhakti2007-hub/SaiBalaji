@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // 1. Bookings Validation
+    function isValidBooking(data) {
+      return data.keys().hasAll(['name', 'phone', 'location', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 128 &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             data.location is string && data.location.size() > 0 && data.location.size() <= 500 &&
+             data.createdAt == request.time;
+    }
+
+    match /bookings/{bookingId} {
+      // Allow public creation of bookings
+      allow create: if isValidBooking(incoming());
+      
+      // Only admins can read or list bookings
+      allow read, list: if isAdmin();
+      
+      // Prevent updates/deletes to ensure record integrity
+      allow update, delete: if isAdmin();
+    }
+
+    // 2. Admins collection - for internal reference
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via Firebase Console or Admin SDK
+    }
+  }
+}

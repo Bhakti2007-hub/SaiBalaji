@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // 1. Bookings Validation
+    function isValidBooking(data) {
+      return data.keys().hasAll(['name', 'phone', 'location', 'createdAt', 'status']) &&
+             data.keys().size() == 5 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 128 &&
+             data.phone is string && data.phone.matches('^[0-9]{10}$') &&
+             data.location is string && data.location.size() > 0 && data.location.size() <= 500 &&
+             data.status == 'pending' &&
+             data.createdAt == request.time;
+    }
+
+    match /bookings/{bookingId} {
+      // Allow public creation of bookings
+      allow create: if isValidBooking(incoming());
+      
+      // All other operations denied (handled via Email/Firebase Console)
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "A travel booking request.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the user."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact number."
+        },
+        "location": {
+          "type": "string",
+          "description": "Target travel location."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of booking."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "assigned", "completed", "cancelled"],
+          "description": "Current status of the booking."
+        },
+        "assignedCar": {
+          "type": "string",
+          "description": "Details of the assigned car/driver."
+        }
+      },
+      "required": ["name", "phone", "location", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of all travel bookings."
+    }
+  }
+}

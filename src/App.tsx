@@ -5,6 +5,13 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { db } from "./lib/firebase";
+import { 
+  collection, 
+  addDoc, 
+  serverTimestamp 
+} from "firebase/firestore";
+import { handleFirestoreError } from "./lib/errorHandlers";
 import { 
   Car, 
   MapPin, 
@@ -50,67 +57,97 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-zinc-950/90 backdrop-blur-md py-4 border-bottom border-zinc-800" : "bg-transparent py-6"}`}>
-      <div className="container mx-auto px-6 flex justify-between items-center">
-        <a href="#" className="flex items-center gap-2">
-          <div className="bg-amber-500 p-1.5 rounded-lg">
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? "bg-zinc-950/90 backdrop-blur-xl py-3 border-b border-zinc-800/50 shadow-2xl" : "bg-transparent py-6"}`}>
+      <div className="container mx-auto px-6 grid grid-cols-2 md:grid-cols-3 items-center">
+        {/* Left: Logo */}
+        <a href="#" className="flex items-center gap-2 group w-fit">
+          <div className="bg-amber-500 p-1.5 rounded-lg transition-transform group-hover:rotate-12">
             <Car className="text-zinc-950 w-6 h-6" />
           </div>
           <span className="text-xl font-extrabold tracking-tighter text-white">SAI<span className="text-amber-500">BALAJI</span></span>
         </a>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Center: Nav Links */}
+        <div className="hidden md:flex justify-center items-center gap-8">
           {navItems.map((item) => (
             <a 
               key={item.name} 
               href={item.href} 
-              className="text-sm font-medium text-zinc-400 hover:text-amber-500 transition-colors uppercase tracking-widest"
+              className="text-xs font-bold text-zinc-400 hover:text-amber-500 transition-colors uppercase tracking-[0.2em] relative group"
             >
               {item.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-500 transition-all group-hover:w-full"></span>
             </a>
           ))}
+        </div>
+
+        {/* Right: Action Buttons */}
+        <div className="hidden md:flex justify-end items-center gap-4">
+          <a 
+            href="tel:9225533284" 
+            className="flex items-center gap-2 text-zinc-300 hover:text-amber-500 px-4 py-2 rounded-full text-xs font-bold transition-all uppercase tracking-widest border border-zinc-800 hover:border-amber-500"
+          >
+            <Phone className="w-4 h-4" /> CALL
+          </a>
           <a 
             href="#booking" 
-            className="bg-amber-500 hover:bg-amber-600 text-zinc-950 px-6 py-2 rounded-full text-sm font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/20"
+            className="bg-amber-500 hover:bg-amber-600 text-zinc-950 px-6 py-2.5 rounded-full text-xs font-black transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-amber-500/20 uppercase tracking-widest"
           >
             BOOK NOW
           </a>
         </div>
 
         {/* Mobile Toggle */}
-        <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X /> : <Menu />}
-        </button>
+        <div className="flex md:hidden justify-end">
+          <button 
+            className="p-2 bg-zinc-900 rounded-lg border border-zinc-800 text-white" 
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-zinc-900 border-b border-zinc-800 md:hidden overflow-hidden"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="absolute top-full left-0 w-full bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-800 md:hidden overflow-hidden shadow-2xl"
           >
-            <div className="flex flex-col p-6 gap-4">
-              {navItems.map((item) => (
-                <a 
+            <div className="flex flex-col p-8 gap-6">
+              {navItems.map((item, idx) => (
+                <motion.a 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
                   key={item.name} 
                   href={item.href} 
-                  className="text-lg font-medium text-zinc-300 hover:text-amber-500"
+                  className="text-2xl font-black text-white hover:text-amber-500 flex justify-between items-center group uppercase tracking-tighter"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
-                </a>
+                  <ChevronRight className="w-5 h-5 text-zinc-800 transition-transform group-hover:translate-x-1 group-hover:text-amber-500" />
+                </motion.a>
               ))}
-              <a 
-                href="#booking" 
-                className="bg-amber-500 text-zinc-950 text-center py-3 rounded-lg font-bold"
-                onClick={() => setIsOpen(false)}
-              >
-                BOOK NOW
-              </a>
+              <div className="pt-6 border-t border-zinc-800 flex flex-col gap-4">
+                <a 
+                  href="tel:9225533284" 
+                  className="flex items-center justify-center gap-3 bg-white text-zinc-950 py-4 rounded-2xl font-black uppercase tracking-widest text-sm"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Phone className="w-5 h-5" /> CALL NOW
+                </a>
+                <a 
+                  href="#booking" 
+                  className="bg-amber-500 text-zinc-950 text-center py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-amber-500/20"
+                  onClick={() => setIsOpen(false)}
+                >
+                  BOOK NOW
+                </a>
+              </div>
             </div>
           </motion.div>
         )}
@@ -144,12 +181,57 @@ const SectionHeading = ({ subtitle, title, light = false }: { subtitle: string, 
 export default function App() {
   const [form, setForm] = useState<BookingForm>({ name: "", phone: "", location: "" });
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number (exactly 10 digits)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(form.phone)) {
+      setPhoneError("Please enter a valid 10-digit mobile number");
+      return;
+    }
+    
+    // Prevent common fake patterns (e.g., 0000000000)
+    if (/^(.)\1+$/.test(form.phone)) {
+      setPhoneError("Please enter a genuine mobile number");
+      return;
+    }
+
+    setPhoneError("");
+    
     if (form.name && form.phone && form.location) {
-      setShowConfirmation(true);
-      // In a real app, this would send data to a server
+      setIsSubmitting(true);
+      try {
+        await addDoc(collection(db, "bookings"), {
+          name: form.name,
+          phone: form.phone,
+          location: form.location,
+          status: "pending",
+          createdAt: serverTimestamp(),
+        });
+
+        // Trigger Email Notification
+        await fetch("/api/notify-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            phone: form.phone,
+            location: form.location,
+          }),
+        }).catch(err => console.warn("Email trigger failed:", err));
+
+        setShowConfirmation(true);
+        setForm({ name: "", phone: "", location: "" });
+      } catch (error) {
+        console.error("Booking error:", error);
+        handleFirestoreError(error, "create", "bookings");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -186,11 +268,11 @@ export default function App() {
               Experience the pinnacle of comfort and reliability with our premium Swift Dzire car services. Your journey, our commitment.
             </p>
             <div className="flex flex-wrap gap-4">
+              <a href="tel:9225533284" className="bg-white hover:bg-zinc-200 text-zinc-950 px-10 py-4 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                <Phone className="w-5 h-5" /> CALL NOW
+              </a>
               <a href="#booking" className="bg-amber-500 hover:bg-amber-600 text-zinc-950 px-10 py-4 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 shadow-xl shadow-amber-500/20">
                 BOOK NOW <ChevronRight className="w-5 h-5" />
-              </a>
-              <a href="#about" className="border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white px-10 py-4 rounded-full font-bold transition-all">
-                LEARN MORE
               </a>
             </div>
           </motion.div>
@@ -212,30 +294,13 @@ export default function App() {
       {/* About Us Section */}
       <section id="about" className="py-24 bg-zinc-900 overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row gap-16 items-center">
-            <div className="flex-1 relative">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="relative z-10"
-              >
-                <img 
-                  src="https://images.unsplash.com/photo-1542362567-b05423605c06?auto=format&fit=crop&q=80&w=800" 
-                  alt="Car Interior" 
-                  className="rounded-3xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
-                  referrerPolicy="no-referrer"
-                />
-              </motion.div>
-              <div className="absolute -top-10 -left-10 w-64 h-64 bg-amber-500/10 blur-[100px] -z-0"></div>
-              <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-zinc-950 blur-[50px] -z-0"></div>
-            </div>
-            
-            <div className="flex-1">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center">
               <SectionHeading subtitle="Who We Are" title="Our Swift Dzire Service" light />
-              <p className="text-zinc-400 mb-8 leading-relaxed">
+              <p className="text-zinc-400 mb-12 leading-relaxed text-lg">
                 At SaiBalaji Tours and Travelers, we redefine local and outstation travel. Our flagship fleet features the iconic Swift Dzire, a vehicle synonymous with reliability and comfort for Indian roads.
               </p>
+            </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {[
@@ -262,7 +327,6 @@ export default function App() {
                   </motion.div>
                 ))}
               </div>
-            </div>
           </div>
         </div>
       </section>
@@ -316,11 +380,27 @@ export default function App() {
                   <input 
                     type="tel" 
                     required
-                    placeholder="+91 00000 00000"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
+                    className={`w-full bg-zinc-900 border ${phoneError ? "border-red-500" : "border-zinc-800"} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors`}
                     value={form.phone}
-                    onChange={(e) => setForm({...form, phone: e.target.value})}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      if (val.length <= 10) {
+                        setForm({...form, phone: val});
+                        if (phoneError) setPhoneError("");
+                      }
+                    }}
                   />
+                  {phoneError && (
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-[10px] font-bold mt-2 uppercase tracking-wider"
+                    >
+                      {phoneError}
+                    </motion.p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-zinc-400 text-xs font-bold uppercase tracking-widest mb-2">Travel Location</label>
@@ -335,9 +415,10 @@ export default function App() {
                 </div>
                 <button 
                   type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 py-4 rounded-xl font-bold tracking-widest uppercase transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 py-4 rounded-xl font-bold tracking-widest uppercase transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Confirm Booking <ChevronRight className="w-5 h-5" />
+                  {isSubmitting ? "Processing..." : "Confirm Booking"} <ChevronRight className="w-5 h-5" />
                 </button>
               </motion.form>
             </div>
@@ -351,7 +432,6 @@ export default function App() {
           <SectionHeading subtitle="The Fleet" title="Swift Dzire Luxury" light />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              "https://images.unsplash.com/photo-1630173881831-255d676839ff?auto=format&fit=crop&q=80&w=800",
               "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=800",
               "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800"
             ].map((url, idx) => (
@@ -395,7 +475,7 @@ export default function App() {
                   </div>
                   <div>
                     <p className="text-zinc-500 text-xs font-bold uppercase mb-1">Phone Number</p>
-                    <a href="tel:9834307979" className="text-white text-xl font-bold hover:text-amber-500 transition-colors">9834307979</a>
+                    <a href="tel:9225533284" className="text-white text-xl font-bold hover:text-amber-500 transition-colors">9225533284</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -441,7 +521,7 @@ export default function App() {
               <p className="text-zinc-500 text-sm">© 2026 SaiBalaji Tours and Travelers. All rights reserved.</p>
             </div>
             
-            <div className="flex gap-6">
+            <div className="flex gap-6 items-center">
               {[Instagram, Facebook, Twitter].map((Icon, idx) => (
                 <a key={idx} href="#" className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-amber-500 hover:border-amber-500 transition-all">
                   <Icon className="w-5 h-5" />
