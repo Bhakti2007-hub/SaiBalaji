@@ -162,11 +162,10 @@ export default function App() {
         {/* Background Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=2000" 
-            alt="Swift Dzire Car" 
-            className="w-full h-full object-cover scale-105"
-            referrerPolicy="no-referrer"
-          />
+  src="https://raw.githubusercontent.com/Bhakti2007-hub/SaiBalaji/main/images/car3.jpg" 
+  alt="Car" 
+  className="w-full h-full object-cover scale-105"
+/>
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent"></div>
         </div>
 
